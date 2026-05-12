@@ -105,8 +105,12 @@
         }
         table {
             width: 100%;
+            min-width: 900px;
             border-collapse: collapse;
             margin-top: 20px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
         }
         th, td {
             padding: 12px;
@@ -241,20 +245,22 @@
             <button class="btn btn-info" onclick="resetFilters()">重置筛选</button>
         </div>
 
-        <table id="supplierTable">
-            <thead>
-                <tr>
-                    <th style="width: 60px;">序号</th>
-                    <th>仪表类型</th>
-                    <th>品牌厂家</th>
-                    <th style="width: 150px;">品牌等级</th>
-                    <th>备注</th>
-                    <th style="width: 180px;">操作</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="supplierTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">序号</th>
+                        <th>仪表类型</th>
+                        <th>品牌厂家</th>
+                        <th style="width: 150px;">品牌等级</th>
+                        <th>备注</th>
+                        <th style="width: 180px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="modal" id="modal">
