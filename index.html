@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>供应商推荐清单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+        h1 {
+            color: #303133;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+        .filter-box {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-box select {
+            padding: 10px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #409eff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        .btn-success {
+            background-color: #67c23a;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #85ce61;
+        }
+        .btn-danger {
+            background-color: #f56c6c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #f78989;
+        }
+        .btn-info {
+            background-color: #909399;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #a6a9ad;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        th {
+            background-color: #f5f7fa;
+            color: #606266;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f9fafc;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .tag-domestic {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        .tag-foreign {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        .tag-advantage {
+            background-color: #f0f9eb;
+            color: #67c23a;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            padding: 24px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            color: #303133;
+            font-size: 18px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #909399;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #606266;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>供应商推荐清单</h1>
+        
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索供应商名称或仪表类型...">
+            </div>
+            <div class="filter-box">
+                <select id="typeFilter">
+                    <option value="">全部仪表类型</option>
+                </select>
+                <select id="brandFilter">
+                    <option value="">全部品牌等级</option>
+                    <option value="国内品牌一线">国内品牌一线</option>
+                    <option value="国外品牌">国外品牌</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">+ 添加供应商</button>
+            <button class="btn btn-info" onclick="resetFilters()">重置筛选</button>
+        </div>
+
+        <table id="supplierTable">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">序号</th>
+                    <th>仪表类型</th>
+                    <th>品牌厂家</th>
+                    <th style="width: 150px;">品牌等级</th>
+                    <th>备注</th>
+                    <th style="width: 180px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">添加供应商</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="supplierForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>仪表类型</label>
+                    <input type="text" id="meterType" required>
+                </div>
+                <div class="form-group">
+                    <label>品牌厂家</label>
+                    <input type="text" id="brandName" required>
+                </div>
+                <div class="form-group">
+                    <label>品牌等级</label>
+                    <select id="brandLevel">
+                        <option value="">请选择</option>
+                        <option value="国内品牌一线">国内品牌一线</option>
+                        <option value="国外品牌">国外品牌</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="remark"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn btn-success">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const initialData = [
+            { id: 1, meterType: "温度变送器", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 2, meterType: "压力变送器", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 3, meterType: "调节阀", brandName: "吴忠仪表有限责任公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 4, meterType: "调节阀", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 5, meterType: "温度变送器", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 6, meterType: "压力变送器", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 7, meterType: "雷达液位计", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 8, meterType: "超声波液位计", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 9, meterType: "电磁流量计", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "优势" },
+            { id: 10, meterType: "磁翻板液位计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 11, meterType: "雷达液位计", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "" },
+            { id: 12, meterType: "超声波液位计", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "优势" },
+            { id: 13, meterType: "双法兰压差液位计", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 14, meterType: "双法兰压差液位计", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "" },
+            { id: 15, meterType: "磁翻板液位计", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 16, meterType: "音叉料位计", brandName: "上海思派电子科技有限公司", brandLevel: "", remark: "" },
+            { id: 17, meterType: "温度变送器", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 18, meterType: "压力变送器", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 19, meterType: "电磁流量计", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 20, meterType: "质量流量计", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 21, meterType: "雷达液位计", brandName: "E+H", brandLevel: "国外品牌", remark: "" },
+            { id: 22, meterType: "超声波液位计", brandName: "E+H", brandLevel: "国外品牌", remark: "" },
+            { id: 23, meterType: "PH电极", brandName: "E+H", brandLevel: "国外品牌", remark: "" },
+            { id: 24, meterType: "压力变送器", brandName: "罗斯蒙特", brandLevel: "国外品牌", remark: "优势" },
+            { id: 25, meterType: "电磁流量计", brandName: "罗斯蒙特", brandLevel: "国外品牌", remark: "优势" },
+            { id: 26, meterType: "质量流量计", brandName: "高准 Micro Motion", brandLevel: "国外品牌", remark: "优势" },
+            { id: 27, meterType: "雷达液位计", brandName: "艾默生", brandLevel: "国外品牌", remark: "" },
+            { id: 28, meterType: "超声波液位计", brandName: "威格VEGA", brandLevel: "国外品牌", remark: "" },
+            { id: 29, meterType: "压力变送器", brandName: "横河", brandLevel: "国外品牌", remark: "优势" },
+            { id: 30, meterType: "涡街流量计", brandName: "罗斯蒙特", brandLevel: "国外品牌", remark: "优势" },
+            { id: 31, meterType: "电磁流量计", brandName: "科隆", brandLevel: "国外品牌", remark: "优势" },
+            { id: 32, meterType: "涡街流量计", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 33, meterType: "质量流量计", brandName: "西门子", brandLevel: "国外品牌", remark: "" },
+            { id: 34, meterType: "转子流量计", brandName: "科隆", brandLevel: "国外品牌", remark: "" },
+            { id: 35, meterType: "温度变送器", brandName: "罗斯蒙特", brandLevel: "国外品牌", remark: "优势" },
+            { id: 36, meterType: "电磁流量计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 37, meterType: "转子流量计", brandName: "ABB", brandLevel: "国外品牌", remark: "优势" },
+            { id: 38, meterType: "转子流量计", brandName: "布鲁克斯仪器", brandLevel: "国外品牌", remark: "优势" },
+            { id: 39, meterType: "转子流量计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 40, meterType: "质量流量计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 41, meterType: "质量流量计", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "优势" },
+            { id: 42, meterType: "涡街流量计", brandName: "横河", brandLevel: "国外品牌", remark: "优势" },
+            { id: 43, meterType: "雷达液位计", brandName: "威格VEGA", brandLevel: "国外品牌", remark: "优势" },
+            { id: 44, meterType: "雷达液位计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 45, meterType: "超声波液位计", brandName: "西门子", brandLevel: "国外品牌", remark: "优势" },
+            { id: 46, meterType: "超声波液位计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "", remark: "" },
+            { id: 47, meterType: "调节阀", brandName: "费希尔", brandLevel: "国外品牌", remark: "优势" },
+            { id: 48, meterType: "调节阀", brandName: "横河", brandLevel: "国外品牌", remark: "" },
+            { id: 49, meterType: "调节阀", brandName: "霍尼韦尔", brandLevel: "国外品牌", remark: "" },
+            { id: 50, meterType: "电磁流量计", brandName: "杭州美控自动化技术有限公司", brandLevel: "", remark: "" },
+            { id: 51, meterType: "压力变送器", brandName: "杭州美控自动化技术有限公司", brandLevel: "", remark: "" },
+            { id: 52, meterType: "双法兰压差液位计", brandName: "横河", brandLevel: "国外品牌", remark: "优势" },
+            { id: 53, meterType: "双法兰压差液位计", brandName: "E+H", brandLevel: "国外品牌", remark: "" },
+            { id: 54, meterType: "双法兰压差液位计", brandName: "罗斯蒙特", brandLevel: "国外品牌", remark: "" },
+            { id: 55, meterType: "双法兰压差液位计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "", remark: "优势" },
+            { id: 56, meterType: "音叉料位计", brandName: "西门子", brandLevel: "国外品牌", remark: "" },
+            { id: 57, meterType: "音叉料位计", brandName: "E+H", brandLevel: "国外品牌", remark: "优势" },
+            { id: 58, meterType: "音叉料位计", brandName: "重庆川仪自动化股份有限公司", brandLevel: "", remark: "" },
+            { id: 59, meterType: "PH电极", brandName: "梅特勒托利多", brandLevel: "国外品牌", remark: "优势" },
+            { id: 60, meterType: "PH电极", brandName: "赛默飞世尔", brandLevel: "国外品牌", remark: "" },
+            { id: 61, meterType: "PH电极", brandName: "哈纳仪器HANNA", brandLevel: "国外品牌", remark: "" },
+            { id: 62, meterType: "PH电极", brandName: "上海仪电科学仪器股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 63, meterType: "电导率", brandName: "上海仪电科学仪器股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 64, meterType: "溶解氧", brandName: "上海仪电科学仪器股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 65, meterType: "称重模块", brandName: "梅特勒托利多", brandLevel: "国外品牌", remark: "优势" },
+            { id: 66, meterType: "称重模块", brandName: "西门子", brandLevel: "国外品牌", remark: "" },
+            { id: 67, meterType: "称重模块", brandName: "HBK霍丁格必凯(苏州)电子测量技术有限公司", brandLevel: "国外品牌", remark: "优势" },
+            { id: 68, meterType: "称重模块", brandName: "宁波柯力传感科技股份有限公司", brandLevel: "国内品牌一线", remark: "优势" },
+            { id: 69, meterType: "称重模块", brandName: "中航电测仪器(西安)有限公司", brandLevel: "国内品牌一线", remark: "" },
+            { id: 70, meterType: "水质分析仪", brandName: "杭州美仪自动化技术股份有限公司", brandLevel: "", remark: "优势" },
+            { id: 71, meterType: "质量流量控制器", brandName: "ALICAT", brandLevel: "国外品牌", remark: "优势" },
+            { id: 72, meterType: "质量流量控制器", brandName: "北京华丞电子有限公司", brandLevel: "国内品牌一线", remark: "优势" }
+        ];
+
+        const SUPABASE_URL = "https://hayzgpsmkpxwhskqhmcq.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_b3R-94mjmV5YwJPeyf5qlw_O7yO2JaW";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let suppliers = [];
+        let suppliersChannel = null;
+        const SUPPLIER_FIELDS = 'id, meter_type, brand_name, brand_level, remark, deleted_at';
+
+        async function init() {
+            bindEvents();
+            await loadSuppliers();
+            subscribeRealtime();
+        }
+
+        function mapSupplier(row) {
+            return {
+                id: row.id,
+                meterType: row.meter_type || '',
+                brandName: row.brand_name || '',
+                brandLevel: row.brand_level || '',
+                remark: row.remark || '',
+                deletedAt: row.deleted_at
+            };
+        }
+
+        function toSupplierPayload(data) {
+            return {
+                meter_type: data.meterType,
+                brand_name: data.brandName,
+                brand_level: data.brandLevel,
+                remark: data.remark
+            };
+        }
+
+        async function loadSuppliers() {
+            const { data, error } = await supabaseClient
+                .from('suppliers')
+                .select(SUPPLIER_FIELDS)
+                .is('deleted_at', null)
+                .order('id', { ascending: true });
+
+            if (error) {
+                console.error('加载供应商失败:', error);
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">暂无数据</td></tr>';
+                return;
+            }
+
+            suppliers = (data || []).map(mapSupplier);
+            populateTypeFilter();
+            renderTable();
+        }
+
+        function subscribeRealtime() {
+            if (suppliersChannel) {
+                supabaseClient.removeChannel(suppliersChannel);
+            }
+
+            suppliersChannel = supabaseClient
+                .channel('suppliers-realtime')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'suppliers'
+                }, loadSuppliers)
+                .subscribe();
+        }
+
+        async function writeEditLog(action, supplierId, oldData, newData) {
+            const { error } = await supabaseClient
+                .from('edit_logs')
+                .insert({
+                    supplier_id: supplierId,
+                    action,
+                    old_data: oldData,
+                    new_data: newData
+                });
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        function populateTypeFilter() {
+            const typeFilter = document.getElementById('typeFilter');
+            const types = [...new Set(suppliers.map(s => s.meterType))].sort();
+            typeFilter.innerHTML = '<option value="">全部仪表类型</option>';
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const brandFilter = document.getElementById('brandFilter').value;
+
+            let filtered = suppliers.filter(s => {
+                const matchSearch = !searchText || 
+                    s.brandName.toLowerCase().includes(searchText) || 
+                    s.meterType.toLowerCase().includes(searchText);
+                const matchType = !typeFilter || s.meterType === typeFilter;
+                const matchBrand = !brandFilter || s.brandLevel === brandFilter;
+                return matchSearch && matchType && matchBrand;
+            });
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">暂无数据</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = filtered.map((s, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${s.meterType}</td>
+                    <td>${s.brandName}</td>
+                    <td>${s.brandLevel ? `<span class="tag ${s.brandLevel.includes('国内') ? 'tag-domestic' : 'tag-foreign'}">${s.brandLevel}</span>` : ''}</td>
+                    <td>${s.remark ? `<span class="tag tag-advantage">${s.remark}</span>` : ''}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editSupplier('${s.id}')">编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function bindEvents() {
+            document.getElementById('searchInput').addEventListener('input', renderTable);
+            document.getElementById('typeFilter').addEventListener('change', renderTable);
+            document.getElementById('brandFilter').addEventListener('change', renderTable);
+            document.getElementById('supplierForm').addEventListener('submit', handleSubmit);
+        }
+
+        function openModal(id = null) {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const form = document.getElementById('supplierForm');
+            form.reset();
+            document.getElementById('editId').value = '';
+
+            if (id) {
+                const supplier = suppliers.find(s => String(s.id) === String(id));
+                if (supplier) {
+                    modalTitle.textContent = '编辑供应商';
+                    document.getElementById('editId').value = supplier.id;
+                    document.getElementById('meterType').value = supplier.meterType;
+                    document.getElementById('brandName').value = supplier.brandName;
+                    document.getElementById('brandLevel').value = supplier.brandLevel;
+                    document.getElementById('remark').value = supplier.remark;
+                }
+            } else {
+                modalTitle.textContent = '添加供应商';
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function editSupplier(id) {
+            openModal(id);
+        }
+
+        async function deleteSupplier(id) {
+            if (confirm('确定要删除这条记录吗？')) {
+                const oldSupplier = suppliers.find(s => String(s.id) === String(id)) || null;
+                const deletedAt = new Date().toISOString();
+                const { data, error } = await supabaseClient
+                    .from('suppliers')
+                    .update({ deleted_at: deletedAt })
+                    .eq('id', id)
+                    .is('deleted_at', null)
+                    .select(SUPPLIER_FIELDS)
+                    .single();
+
+                if (error) {
+                    console.error('删除供应商失败:', error);
+                    alert('删除失败，请稍后重试。');
+                    return;
+                }
+
+                try {
+                    await writeEditLog('delete', id, oldSupplier, mapSupplier(data));
+                } catch (logError) {
+                    console.error('写入删除日志失败:', logError);
+                    alert('删除已完成，但日志写入失败，请检查 edit_logs 表。');
+                }
+
+                await loadSuppliers();
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const data = {
+                meterType: document.getElementById('meterType').value,
+                brandName: document.getElementById('brandName').value,
+                brandLevel: document.getElementById('brandLevel').value,
+                remark: document.getElementById('remark').value
+            };
+            const payload = toSupplierPayload(data);
+
+            try {
+                if (editId) {
+                    const oldSupplier = suppliers.find(s => String(s.id) === String(editId)) || null;
+                    const { data: updatedSupplier, error } = await supabaseClient
+                        .from('suppliers')
+                        .update(payload)
+                        .eq('id', editId)
+                        .is('deleted_at', null)
+                        .select(SUPPLIER_FIELDS)
+                        .single();
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    await writeEditLog('update', editId, oldSupplier, mapSupplier(updatedSupplier));
+                } else {
+                    const { data: insertedSupplier, error } = await supabaseClient
+                        .from('suppliers')
+                        .insert(payload)
+                        .select(SUPPLIER_FIELDS)
+                        .single();
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    await writeEditLog('insert', insertedSupplier.id, null, mapSupplier(insertedSupplier));
+                }
+
+                await loadSuppliers();
+                closeModal();
+            } catch (error) {
+                console.error('保存供应商失败:', error);
+                alert('保存失败，请稍后重试。');
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('brandFilter').value = '';
+            renderTable();
+        }
+
+        init();
+    </script>
+</body>
+</html>
